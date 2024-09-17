@@ -483,6 +483,21 @@ fn get_key(wparam: usize) -> Option<Key> {
     }
 }
 
+#[test]
+fn test_key_map() {
+    assert_eq!(get_key(0x30), Some(Key::Num0));
+    assert_eq!(get_key(0x39), Some(Key::Num9));
+
+    assert_eq!(get_key(0x41), Some(Key::A));
+    assert_eq!(get_key(0x5A), Some(Key::Z));
+
+    assert_eq!(get_key(0x60), Some(Key::Num0));
+    assert_eq!(get_key(0x69), Some(Key::Num9));
+
+    assert_eq!(get_key(0x70), Some(Key::F1));
+    assert_eq!(get_key(0x83), Some(Key::F20));
+}
+
 fn get_mouse_modifiers(wparam: usize) -> Modifiers {
     Modifiers {
         alt: false,

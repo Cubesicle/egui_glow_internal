@@ -19,3 +19,6 @@ windows = { version = "0.58", features = ["Win32_System_LibraryLoader",
                                             "Win32_UI_HiDpi"] }
 clipboard = "0.5"
 thiserror = "1.0"
+
+[workspace]
+members = [ "examples/simple_gui" ]

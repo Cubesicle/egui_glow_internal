@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-egui_glow = "0.26.1"
-egui = "0.26.1"
-windows = { version = "0.52.0", features = ["Win32_System_LibraryLoader", 
+egui_glow = "0.28"
+egui = "0.28"
+windows = { version = "0.58", features = ["Win32_System_LibraryLoader", 
                                             "Win32_Foundation", 
                                             "Win32_Graphics_OpenGL", 
                                             "Win32_Graphics_Gdi", 
@@ -17,5 +17,5 @@ windows = { version = "0.52.0", features = ["Win32_System_LibraryLoader",
                                             "Win32_UI_Input_KeyboardAndMouse", 
                                             "Wdk_System_SystemInformation", 
                                             "Win32_UI_HiDpi"] }
-clipboard = "0.5.0"
-thiserror = "1.0.50"
+clipboard = "0.5"
+thiserror = "1.0"

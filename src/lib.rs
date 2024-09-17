@@ -1,5 +1,5 @@
 use clipboard::{windows_clipboard::WindowsClipboardContext, ClipboardProvider};
-use egui::{Event, Key, Modifiers, PointerButton, Pos2, RawInput, Rect, Vec2};
+use egui::{Event, Key, Modifiers, MouseWheelUnit, PointerButton, Pos2, RawInput, Rect, Vec2};
 use std::sync::Arc;
 use windows::{
     Wdk::System::SystemInformation::NtQuerySystemTime,
@@ -321,7 +321,8 @@ pub fn on_event(umsg: u32, wparam: usize, lparam: isize) -> Result<bool, Error> 
             }
         }
         WM_MOUSEWHEEL => {
-            alter_modifiers(state, get_mouse_modifiers(wparam));
+            let modifiers = get_mouse_modifiers(wparam);
+            alter_modifiers(state, modifiers);
 
             let delta = (wparam >> 16) as i16 as f32 * 10.0 / WHEEL_DELTA as f32;
 
@@ -330,11 +331,16 @@ pub fn on_event(umsg: u32, wparam: usize, lparam: isize) -> Result<bool, Error> 
                     .events
                     .push(Event::Zoom(if delta > 0.0 { 1.5 } else { 0.5 }));
             } else {
-                state.events.push(Event::Scroll(Vec2::new(0.0, delta)));
+                state.events.push(Event::MouseWheel {
+                    unit: MouseWheelUnit::Point,
+                    delta: Vec2::new(0.0, delta),
+                    modifiers,
+                });
             }
         }
         WM_MOUSEHWHEEL => {
-            alter_modifiers(state, get_mouse_modifiers(wparam));
+            let modifiers = get_mouse_modifiers(wparam);
+            alter_modifiers(state, modifiers);
 
             let delta = (wparam >> 16) as i16 as f32 * 10.0 / WHEEL_DELTA as f32;
 
@@ -343,7 +349,11 @@ pub fn on_event(umsg: u32, wparam: usize, lparam: isize) -> Result<bool, Error> 
                     .events
                     .push(Event::Zoom(if delta > 0. { 1.5 } else { 0.5 }));
             } else {
-                state.events.push(Event::Scroll(Vec2::new(delta, 0.0)));
+                state.events.push(Event::MouseWheel {
+                    unit: MouseWheelUnit::Point,
+                    delta: Vec2::new(delta, 0.0),
+                    modifiers,
+                });
             }
         }
         msg @ (WM_KEYDOWN | WM_SYSKEYDOWN) => {
@@ -444,13 +454,13 @@ fn alter_modifiers(state: &mut EguiState, new: Modifiers) {
 fn get_key(wparam: usize) -> Option<Key> {
     match wparam {
         // number keys
-        0x30..=0x39 => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x10)) },
+        0x30..=0x39 => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x0F)) },
         // letter keys
-        0x41..=0x5A => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x17)) },
+        0x41..=0x5A => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x16)) },
         // numpad keys
-        0x60..=0x69 => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x40)) },
+        0x60..=0x69 => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x3F)) },
         // f1-f20
-        0x70..=0x83 => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x2C)) },
+        0x70..=0x83 => unsafe { Some(std::mem::transmute::<_, Key>(wparam as u8 - 0x2B)) },
         _ => match VIRTUAL_KEY(wparam as u16) {
             VK_DOWN => Some(Key::ArrowDown),
             VK_LEFT => Some(Key::ArrowLeft),

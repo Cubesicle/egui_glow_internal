@@ -37,7 +37,7 @@ static_detour! {
 
 type FnWglSwapBuffers = unsafe extern "system" fn(HDC) -> i32;
 
-static mut O_WNDPROC: Option<i32> = None;
+static mut O_WNDPROC: Option<isize> = None;
 static mut GUI_STATE: GuiState = GuiState {
     text: String::new(),
     checked: false,
@@ -87,16 +87,16 @@ unsafe extern "system" fn extension_main(_dll: *mut c_void) -> u32 {
     let swap_buffers: FnWglSwapBuffers =
         std::mem::transmute(GetProcAddress(opengl, windows::core::s!("wglSwapBuffers")));
 
-    let (sx, rx) = std::sync::mpsc::channel();
+    let (sx, rx) = std::sync::mpsc::channel::<isize>();
 
     h_wglSwapBuffers
         .initialize(swap_buffers, move |hdc| {
-            if hdc == HDC(0) {
+            if hdc == HDC(std::ptr::null_mut()) {
                 return h_wglSwapBuffers.call(hdc);
             }
 
             if !egui_glow_internal::is_init() {
-                sx.send(hdc).unwrap();
+                sx.send(std::mem::transmute(hdc)).unwrap();
                 egui_glow_internal::init(hdc).unwrap();
             }
 
@@ -122,7 +122,7 @@ unsafe extern "system" fn extension_main(_dll: *mut c_void) -> u32 {
         .enable()
         .unwrap();
 
-    let hdc = rx.recv().unwrap();
+    let hdc = std::mem::transmute::<_, HDC>(rx.recv().unwrap());
     let hwnd = WindowFromDC(hdc);
 
     O_WNDPROC = Some(SetWindowLongPtrA(hwnd, GWLP_WNDPROC, h_wndproc as _));
